@@ -3,7 +3,6 @@ package files
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"syscall"
 	"time"
@@ -23,18 +22,23 @@ func FileExists(filename string) bool {
 }
 
 // FileCopy copies src file to destination path.
-func FileCopy(src string, destination string, perm os.FileMode) error {
-	input, err := ioutil.ReadFile(src)
+func FileCopy(src string, destination string, perm ...os.FileMode) error {
+	p := os.ModePerm
+	if len(perm) != 0 {
+		p = perm[0]
+	}
+
+	input, err := os.ReadFile(src)
 	if err != nil {
 		return err
 	}
 
-	return ioutil.WriteFile(destination, input, perm)
+	return os.WriteFile(destination, input, p)
 }
 
 // ReadStringFile reads file as string.
 func ReadStringFile(path string, name string) (string, error) {
-	b, err := ioutil.ReadFile(path + "/" + name)
+	b, err := os.ReadFile(path + "/" + name)
 	if err != nil {
 		return "", err
 	}
@@ -44,7 +48,7 @@ func ReadStringFile(path string, name string) (string, error) {
 
 // ReadBinFile reads file as slice of bytes.
 func ReadBinFile(path string, name string) ([]byte, error) {
-	b, err := ioutil.ReadFile(path + "/" + name)
+	b, err := os.ReadFile(path + "/" + name)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -52,7 +56,7 @@ func ReadBinFile(path string, name string) ([]byte, error) {
 	return b, nil
 }
 
-// WriteFileString write string content to text file.
+// WriteFileString writes string content to text file.
 func WriteFileString(path string, name string, value string) error {
 	fo, err := os.Create(path + "/" + name)
 	if err != nil {
@@ -87,21 +91,26 @@ func StatTimes(name string) (atime, mtime, ctime time.Time, err error) {
 // The permission bits perm (before umask) are used for all
 // directories that MkdirAll creates.
 // If path is already a directory, MkdirAll returns error.
-func MkdirAll(path string) error {
+func MkdirAll(path string, perm ...os.FileMode) error {
 	_, err := os.Stat(path)
 
 	switch {
 	case err == nil:
 		return fmt.Errorf("%w: %s", ErrFolderAlreadyExist, path)
 	case os.IsNotExist(err):
-		return os.MkdirAll(path, os.ModePerm)
+		p := os.ModePerm
+		if len(perm) != 0 {
+			p = perm[0]
+		}
+
+		return os.MkdirAll(path, p)
 	}
 
 	return err
 }
 
 func GetDirNamesInFolder(path string) ([]string, error) {
-	items, err := ioutil.ReadDir(path)
+	items, err := os.ReadDir(path)
 	if err != nil {
 		return make([]string, 0), fmt.Errorf("scan dirrectory: %w", err)
 	}
@@ -109,7 +118,7 @@ func GetDirNamesInFolder(path string) ([]string, error) {
 	names := make([]string, 0, len(items))
 
 	for _, item := range items {
-		if item.Mode().IsDir() {
+		if item.IsDir() {
 			names = append(names, item.Name())
 		}
 	}
@@ -118,7 +127,7 @@ func GetDirNamesInFolder(path string) ([]string, error) {
 }
 
 func GetFileNamesInFolder(path string) ([]string, error) {
-	items, err := ioutil.ReadDir(path)
+	items, err := os.ReadDir(path)
 	if err != nil {
 		return make([]string, 0), fmt.Errorf("scan dirrectory: %w", err)
 	}
@@ -126,7 +135,7 @@ func GetFileNamesInFolder(path string) ([]string, error) {
 	names := make([]string, 0, len(items))
 
 	for _, item := range items {
-		if !item.Mode().IsDir() {
+		if !item.IsDir() {
 			names = append(names, item.Name())
 		}
 	}
