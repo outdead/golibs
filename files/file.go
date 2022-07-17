@@ -1,14 +1,15 @@
 package files
 
 import (
-	"errors"
 	"fmt"
+	"io"
 	"os"
+	"strings"
 	"syscall"
 	"time"
 )
 
-var ErrFolderAlreadyExist = errors.New("folder already exists")
+const OwnerWritePerm = os.FileMode(0o755)
 
 // FileExists checks if a file exists and is not a directory before we
 // try using it to prevent further errors.
@@ -70,6 +71,33 @@ func WriteFileString(path string, name string, value string) error {
 	return nil
 }
 
+// CreateAndOpenFile creates file and open it foe recording.
+func CreateAndOpenFile(path string, fileName string, perm ...os.FileMode) (io.Writer, error) {
+	p := OwnerWritePerm
+	if len(perm) != 0 {
+		p = perm[0]
+	}
+
+	filePath := path
+	if filePath != "" {
+		// Not dependent on the transmitted "/".
+		filePath = strings.TrimRight(filePath, "/") + "/"
+
+		if err := MkdirAll(path); err != nil {
+			return nil, err
+		}
+	}
+
+	filePath += fileName
+
+	f, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, p)
+	if err != nil {
+		return nil, err
+	}
+
+	return f, nil
+}
+
 // StatTimes gets file stats info.
 func StatTimes(name string) (atime, mtime, ctime time.Time, err error) {
 	fi, err := os.Stat(name)
@@ -90,14 +118,10 @@ func StatTimes(name string) (atime, mtime, ctime time.Time, err error) {
 // or else returns an error.
 // The permission bits perm (before umask) are used for all
 // directories that MkdirAll creates.
-// If path is already a directory, MkdirAll returns error.
 func MkdirAll(path string, perm ...os.FileMode) error {
 	_, err := os.Stat(path)
 
-	switch {
-	case err == nil:
-		return fmt.Errorf("%w: %s", ErrFolderAlreadyExist, path)
-	case os.IsNotExist(err):
+	if os.IsNotExist(err) {
 		p := os.ModePerm
 		if len(perm) != 0 {
 			p = perm[0]
