@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+// OwnerWritePerm provides 0755 permission.
 const OwnerWritePerm = os.FileMode(0o755)
 
 // FileExists checks if a file exists and is not a directory before we
@@ -133,6 +134,7 @@ func MkdirAll(path string, perm ...os.FileMode) error {
 	return err
 }
 
+// GetDirNamesInFolder returns slice with directory names in path.
 func GetDirNamesInFolder(path string) ([]string, error) {
 	items, err := os.ReadDir(path)
 	if err != nil {
@@ -150,6 +152,7 @@ func GetDirNamesInFolder(path string) ([]string, error) {
 	return names, nil
 }
 
+// GetFileNamesInFolder returns slice with file names in path.
 func GetFileNamesInFolder(path string) ([]string, error) {
 	items, err := os.ReadDir(path)
 	if err != nil {
