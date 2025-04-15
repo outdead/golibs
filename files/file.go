@@ -65,7 +65,7 @@ func WriteFileString(path string, name string, value string) error {
 		return err
 	}
 
-	if _, err := fo.Write([]byte(value)); err != nil {
+	if _, err := fo.WriteString(value); err != nil {
 		return err
 	}
 
