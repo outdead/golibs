@@ -39,22 +39,22 @@ func New() *Logger {
 // AddOutput adds additional output writer to the logger.
 // This allows writing logs to multiple destinations simultaneously.
 // The new writer will be used in addition to any existing outputs.
-func (logger *Logger) AddOutput(w io.Writer) {
-	logger.Out = io.MultiWriter(logger.Out, w)
+func (log *Logger) AddOutput(w io.Writer) {
+	log.Out = io.MultiWriter(log.Out, w)
 }
 
 // Customize configures the logger based on its configuration.
 // If file output is configured, it creates and opens the log file
 // using the specified path and layout for rotation.
 // Returns an error if file creation fails.
-func (logger *Logger) Customize() error {
-	if logger.config.File.Layout != "" {
-		file, err := files.CreateAndOpenFile(logger.config.File.Path, time.Now().Format(logger.config.File.Layout))
+func (log *Logger) Customize() error {
+	if log.config.File.Layout != "" {
+		file, err := files.CreateAndOpenFile(log.config.File.Path, time.Now().Format(log.config.File.Layout))
 		if err != nil {
 			return fmt.Errorf("create logger file hook: %w", err)
 		}
 
-		logger.AddOutput(file)
+		log.AddOutput(file)
 	}
 
 	return nil
@@ -62,12 +62,12 @@ func (logger *Logger) Customize() error {
 
 // Writer returns the current writer used by the logger.
 // This can be used to redirect the logger's output or integrate with other systems.
-func (logger *Logger) Writer() io.Writer {
-	return logger.Logger.Writer()
+func (log *Logger) Writer() io.Writer {
+	return log.Logger.Writer()
 }
 
 // Close implements the io.Closer interface for the Logger.
 // Currently, it doesn't perform any cleanup but is provided for future compatibility.
-func (logger *Logger) Close() error {
+func (log *Logger) Close() error {
 	return nil
 }
