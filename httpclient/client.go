@@ -28,6 +28,8 @@ type Client struct {
 // New creates and returns a new Client instance configured with the given settings.
 // The configuration includes timeouts, transport settings, and dialer parameters.
 func New(cfg *Config) *Client {
+	cfg.SetDefaults()
+
 	return &Client{
 		http.Client{
 			Timeout: cfg.Timeout,
