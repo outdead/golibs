@@ -29,7 +29,7 @@ linters:
   disable:
     - exportloopref # is deprecated (since v1.60.2)
     - exhaustruct # mad linter
-    - wrapcheck
+    - wrapcheck # mad linter
     - nonamedreturns
 
 issues:
