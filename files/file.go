@@ -24,10 +24,10 @@ func FileExists(filename string) bool {
 }
 
 // FileCopy copies src file to destination path.
-func FileCopy(src string, destination string, perm ...os.FileMode) error {
-	p := os.ModePerm
-	if len(perm) != 0 {
-		p = perm[0]
+func FileCopy(src string, destination string, perms ...os.FileMode) error {
+	perm := os.ModePerm
+	if len(perms) != 0 {
+		perm = perms[0]
 	}
 
 	input, err := os.ReadFile(src)
@@ -35,7 +35,7 @@ func FileCopy(src string, destination string, perm ...os.FileMode) error {
 		return err
 	}
 
-	return os.WriteFile(destination, input, p)
+	return os.WriteFile(destination, input, perm)
 }
 
 // ReadStringFile reads file as string.
@@ -73,10 +73,10 @@ func WriteFileString(path string, name string, value string) error {
 }
 
 // CreateAndOpenFile creates file and open it foe recording.
-func CreateAndOpenFile(path string, fileName string, perm ...os.FileMode) (io.Writer, error) {
-	p := OwnerWritePerm
-	if len(perm) != 0 {
-		p = perm[0]
+func CreateAndOpenFile(path string, fileName string, perms ...os.FileMode) (io.Writer, error) {
+	perm := OwnerWritePerm
+	if len(perms) != 0 {
+		perm = perms[0]
 	}
 
 	filePath := path
@@ -91,7 +91,7 @@ func CreateAndOpenFile(path string, fileName string, perm ...os.FileMode) (io.Wr
 
 	filePath += fileName
 
-	f, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, p)
+	f, err := os.OpenFile(filePath, os.O_WRONLY|os.O_CREATE|os.O_APPEND, perm)
 	if err != nil {
 		return nil, err
 	}
@@ -101,13 +101,13 @@ func CreateAndOpenFile(path string, fileName string, perm ...os.FileMode) (io.Wr
 
 // StatTimes gets file stats info.
 func StatTimes(name string) (atime, mtime, ctime time.Time, err error) {
-	fi, err := os.Stat(name)
+	info, err := os.Stat(name)
 	if err != nil {
 		return
 	}
 
-	mtime = fi.ModTime()
-	stat := fi.Sys().(*syscall.Stat_t) //nolint
+	mtime = info.ModTime()
+	stat := info.Sys().(*syscall.Stat_t) //nolint
 	atime = time.Unix(stat.Atim.Sec, stat.Atim.Nsec)
 	ctime = time.Unix(stat.Ctim.Sec, stat.Ctim.Nsec)
 

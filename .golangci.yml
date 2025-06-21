@@ -28,10 +28,9 @@ linters:
   enable-all: true
   disable:
     - exportloopref # is deprecated (since v1.60.2)
+    - exhaustruct # mad linter
     - wrapcheck
     - nonamedreturns
-    - varnamelen
-    - exhaustruct
 
 issues:
   exclude:
