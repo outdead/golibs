@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"syscall"
 	"time"
@@ -168,4 +169,46 @@ func GetFileNamesInFolder(path string) ([]string, error) {
 	}
 
 	return names, nil
+}
+
+// GetAbsPath returns an absolute path based on the input path and a default path.
+// It handles three cases for the input path:
+//  1. If the path is already absolute (starts with "/"), home-relative (starts with "~/"),
+//     or relative to current directory (starts with "./"), it returns the path as-is.
+//  2. If the path is empty, it uses the defaultPath instead.
+//  3. For all other cases, it treats the path as relative to the executable's directory.
+//
+// Parameters:
+//   - path: The input path to process (can be empty, absolute, or relative)
+//   - defaultPath: The default path to use if input path is empty
+//
+// Returns:
+//   - string: The resulting absolute path
+//   - error: Any error that occurred while getting the executable's directory
+//
+// Example usage:
+//
+//	absPath, err := GetAbsPath("config.json", "/etc/default/config.json")
+//	// Returns "/path/to/executable/config.json" if no error
+func GetAbsPath(path, defaultPath string) (string, error) {
+	// Check if path is already in absolute, home-relative, or current-directory-relative form
+	if path != "" && (string(path[0]) == "/" || strings.HasPrefix(path, "~/") || strings.HasPrefix(path, "./")) {
+		return path, nil
+	}
+
+	// Get the absolute path of the directory containing the executable
+	home, err := filepath.Abs(filepath.Dir(os.Args[0]))
+	if err != nil {
+		return "", err
+	}
+
+	// Use default path if input path is empty
+	if path == "" {
+		path = defaultPath
+	}
+
+	// Combine executable directory with the relative path
+	path = home + "/" + path
+
+	return path, nil
 }
