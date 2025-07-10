@@ -212,6 +212,6 @@ func (t *Ticker) executeHandler(startedAt time.Time) {
 	}
 
 	if t.metrics != nil {
-		t.metrics.Observe(startedAt, time.Since(startedAt), err)
+		t.metrics.Observe(t.name, startedAt, time.Since(startedAt), err)
 	}
 }

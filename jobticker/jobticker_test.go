@@ -49,18 +49,20 @@ func (m *MockLogger) Error(args ...interface{}) {
 // MockMetrics implements Metrics interface for testing
 type MockMetrics struct {
 	observations []struct {
+		Name   string
 		Start  time.Time
 		Delta  time.Duration
 		Status bool
 	}
 }
 
-func (m *MockMetrics) Observe(start time.Time, delta time.Duration, err error) {
+func (m *MockMetrics) Observe(name string, start time.Time, delta time.Duration, err error) {
 	m.observations = append(m.observations, struct {
+		Name   string
 		Start  time.Time
 		Delta  time.Duration
 		Status bool
-	}{start, delta, err == nil})
+	}{name, start, delta, err == nil})
 }
 
 func TestTickerLifecycle(t *testing.T) {
