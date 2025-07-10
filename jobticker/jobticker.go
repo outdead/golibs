@@ -4,7 +4,6 @@ package jobticker
 
 import (
 	"sync"
-	"sync/atomic"
 	"time"
 )
 
@@ -22,17 +21,17 @@ type HandlerFunc func() error
 // Ticker manages a recurring background job with start/stop capabilities.
 // It ensures safe concurrent operation and proper resource cleanup.
 type Ticker struct {
-	name    string
-	quit    chan bool
-	started atomic.Bool
-	wg      sync.WaitGroup
-	logger  Logger
-
+	name     string
 	interval time.Duration
 	handler  HandlerFunc
+	logger   Logger
+	metrics  Metrics
 
+	wg          sync.WaitGroup
 	stopTimeout time.Duration
-	metrics     Metrics
+	mu          sync.Mutex
+	quit        chan bool
+	started     bool
 }
 
 // New creates a configured but unstarted Ticker instance.
@@ -51,9 +50,9 @@ type Ticker struct {
 func New(name string, handler HandlerFunc, interval time.Duration, l Logger, options ...Option) *Ticker {
 	ticker := &Ticker{
 		name:     name,
-		logger:   l,
-		handler:  handler,
 		interval: interval,
+		handler:  handler,
+		logger:   l,
 	}
 
 	for _, option := range options {
@@ -86,25 +85,38 @@ func Start(name string, handler HandlerFunc, interval time.Duration, l Logger, o
 // Start begins the ticker's execution loop in a new goroutine.
 // Safe to call multiple times (will log and ignore subsequent calls).
 func (t *Ticker) Start() {
-	if t.started.Load() {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	if t.started {
 		t.logger.Debug(t.name + ": already been started")
 
 		return
 	}
 
 	t.quit = make(chan bool, 1)
-	t.started.Store(true)
+	t.started = true
 
 	t.wg.Add(1)
 
 	go t.run()
 }
 
-// Stop initiates graceful shutdown of the ticker.
-// Blocks until the current execution completes.
-// Safe to call multiple times or on unstarted tickers.
+// Stop initiates a graceful shutdown of the ticker. It:
+// 1. Sends a quit signal to the running goroutine
+// 2. Waits for the current handler to complete
+// 3. Implements timeout protection for stuck handlers
+//
+// Safe to call multiple times - will return immediately if:
+// - Ticker isn't running (!started)
+// - Quit channel is already full (shutdown in progress)
+//
+// Logs debug messages for all edge cases (already stopped, etc.).
 func (t *Ticker) Stop() {
-	if t.quit == nil || !t.started.Load() {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	if t.quit == nil || !t.started {
 		t.logger.Debug(t.name + ": is not running")
 
 		return
@@ -134,15 +146,31 @@ func (t *Ticker) Stop() {
 	}
 }
 
+// IsRunning safely checks the ticker's current state.
+// Returns:
+//
+//	true - if ticker is actively running
+//	false - if stopped or never started
+//
+// Thread-safe atomic read - safe to call from any goroutine.
 func (t *Ticker) IsRunning() bool {
-	return t.started.Load()
+	t.mu.Lock()
+	defer t.mu.Unlock()
+
+	return t.started
 }
 
-// run contains the main ticker execution loop.
-// Runs in a goroutine until stopped via quit channel.
+// run is the main ticker event loop running in a goroutine.
+// Handles:
+// - Interval tick execution
+// - Graceful shutdown signals
+// - Resource cleanup on exit
+//
+// Note: Started by Start(), stopped by Stop().
+// Uses defer for guaranteed state cleanup.
 func (t *Ticker) run() {
 	defer func() {
-		t.started.Store(false)
+		t.started = false
 		t.wg.Done()
 	}()
 
@@ -162,6 +190,15 @@ func (t *Ticker) run() {
 	}
 }
 
+// executeHandler safely runs the user-provided handler function.
+// Provides:
+// - Panic recovery
+// - Error logging
+// - Performance metrics collection
+//
+// Parameters:
+//
+//	startedAt - timestamp when handler execution began.
 func (t *Ticker) executeHandler(startedAt time.Time) {
 	defer func() {
 		if r := recover(); r != nil {
