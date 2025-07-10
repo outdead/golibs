@@ -48,6 +48,3 @@ jobs:
 
       - name: Update coverage report
         uses: ncruces/go-coverage-report@main
-
-      - name: Build
-        run: go build -v .
