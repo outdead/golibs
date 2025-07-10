@@ -60,12 +60,6 @@ func (log *Logger) Customize() error {
 	return nil
 }
 
-// Writer returns the current writer used by the logger.
-// This can be used to redirect the logger's output or integrate with other systems.
-func (log *Logger) Writer() io.Writer {
-	return log.Logger.Writer()
-}
-
 // Close implements the io.Closer interface for the Logger.
 // Currently, it doesn't perform any cleanup but is provided for future compatibility.
 func (log *Logger) Close() error {
