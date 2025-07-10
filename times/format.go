@@ -10,7 +10,7 @@ import (
 //
 // Examples:
 //
-//	1h30m2s -> "01h30m"  (rounded from 1h30m2s)
+//	1h30m2s -> "01h30m" (rounded from 1h30m2s)
 //	25m     -> "00h25m"
 //	3h45m   -> "03h45m"
 //
@@ -21,11 +21,19 @@ import (
 // Returns:
 //
 //	Formatted string in "HHhMMm" format with leading zeros.
-func FmtDuration(d time.Duration) string {
-	d = d.Round(time.Minute)
-	h := d / time.Hour
-	d -= h * time.Hour //nolint // TODO: Why no lint?
-	m := d / time.Minute
+func FmtDuration(duration time.Duration) string {
+	sign := ""
 
-	return fmt.Sprintf("%002dh%002dm", h, m)
+	duration = duration.Round(time.Minute)
+
+	if negative := duration < 0; negative {
+		duration = -duration
+		sign = "-"
+	}
+
+	h := duration / time.Hour
+	duration -= h * time.Hour //nolint:durationcheck // Intentional duration math - safe conversion
+	m := duration / time.Minute
+
+	return fmt.Sprintf("%s%02dh%02dm", sign, h, m)
 }

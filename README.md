@@ -1,4 +1,7 @@
 # golibs
+[![Go Coverage](https://github.com/outdead/golibs/wiki/coverage.svg)](https://raw.githack.com/wiki/outdead/golibs/coverage.html)
+[![Go Report Card](https://goreportcard.com/badge/github.com/outdead/golibs)](https://goreportcard.com/report/github.com/outdead/golibs)
+
 Golang libraries I use in my projects.
 
 ## Install

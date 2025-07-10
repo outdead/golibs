@@ -32,7 +32,7 @@ func (f *failingReader) Close() error {
 
 func TestNewClient(t *testing.T) {
 	cfg := &Config{
-		Timeout:             10 * time.Second,
+		Timeout:             0, // Sets default 10 * time.Second
 		TLSHandshakeTimeout: 5 * time.Second,
 		Dialer: struct {
 			Timeout       time.Duration `json:"timeout" yaml:"timeout"`
