@@ -75,6 +75,7 @@ func TestTickerLifecycle(t *testing.T) {
 	}
 
 	ticker := New("test", handler, 10*time.Millisecond, logger)
+
 	if ticker.IsRunning() {
 		t.Error("Ticker should not be running after creation")
 	}
@@ -105,8 +106,7 @@ func TestTickerErrorHandling(t *testing.T) {
 		return errors.New("test error")
 	}
 
-	ticker := New("test", handler, 10*time.Millisecond, logger)
-	ticker.Start()
+	ticker := Start("test", handler, 10*time.Millisecond, logger)
 	time.Sleep(25 * time.Millisecond)
 	ticker.Stop()
 
