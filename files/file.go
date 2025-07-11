@@ -191,6 +191,11 @@ func GetFileNamesInFolder(path string) ([]string, error) {
 //	absPath, err := GetAbsPath("config.json", "/etc/default/config.json")
 //	// Returns "/path/to/executable/config.json" if no error
 func GetAbsPath(path, defaultPath string) (string, error) {
+	// Use default path if input path is empty
+	if path == "" {
+		path = defaultPath
+	}
+
 	// Check if path is already in absolute, home-relative, or current-directory-relative form
 	if path != "" && (string(path[0]) == "/" || strings.HasPrefix(path, "~/") || strings.HasPrefix(path, "./")) {
 		return path, nil
@@ -202,13 +207,53 @@ func GetAbsPath(path, defaultPath string) (string, error) {
 		return "", err
 	}
 
-	// Use default path if input path is empty
-	if path == "" {
-		path = defaultPath
-	}
-
 	// Combine executable directory with the relative path
 	path = home + "/" + path
 
 	return path, nil
+}
+
+// ClearDir removes all contents of the specified directory while preserving
+// the directory itself. It traverses the directory recursively, deleting all
+// files, subdirectories, and symbolic links.
+//
+// Parameters:
+//
+//	dir - string path to the directory to be cleared
+//
+// Returns:
+//
+//	error - nil on success, or any error encountered during the operation
+//
+// Behavior details:
+//   - Preserves the original directory (only removes its contents)
+//   - Handles nested directory structures recursively
+//   - Follows symbolic links when deleting (removes link targets)
+//   - Stops and returns on the first error encountered
+//   - Returns nil if directory doesn't exist (consistent with os.RemoveAll)
+//
+// Example usage:
+//
+//	err := ClearDir("/tmp/workdir")
+//	if err != nil {
+//	    log.Fatal("Failed to clear directory:", err)
+//	}
+//
+// Warning:
+//   - This is a destructive operation - deleted files cannot be recovered
+//   - The function will remove ALL contents without confirmation
+//   - Ensure proper permissions exist for all files/subdirectories.
+func ClearDir(dir string) error {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return err
+	}
+
+	for _, entry := range entries {
+		if err := os.RemoveAll(filepath.Join(dir, entry.Name())); err != nil {
+			return err
+		}
+	}
+	
+	return nil
 }
