@@ -254,6 +254,6 @@ func ClearDir(dir string) error {
 			return err
 		}
 	}
-	
+
 	return nil
 }
