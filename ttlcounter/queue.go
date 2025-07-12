@@ -10,7 +10,7 @@ type expirationItem struct {
 
 // expirationQueue implements heap.Interface and manages items in expiration order.
 // The queue is a min-heap where the item with earliest expiration is at index 0.
-type expirationQueue []*expirationItem
+type expirationQueue []*expirationItem //nolint: recvcheck, lll // Pointer receiver and non-pointer receiver needed for interface.
 
 // Len returns the number of items in the queue.
 // This satisfies the heap.Interface requirement.
@@ -38,9 +38,11 @@ func (eq expirationQueue) Swap(i, j int) {
 // Note: This is used by heap.Push, not typically called directly.
 func (eq *expirationQueue) Push(x interface{}) {
 	n := len(*eq)
-	item := x.(*expirationItem)
-	item.index = n
-	*eq = append(*eq, item)
+
+	if item, ok := x.(*expirationItem); ok {
+		item.index = n
+		*eq = append(*eq, item)
+	}
 }
 
 // Pop removes and returns the item at the end of the queue.
