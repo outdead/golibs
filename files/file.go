@@ -218,12 +218,10 @@ func GetAbsPath(path, defaultPath string) (string, error) {
 // files, subdirectories, and symbolic links.
 //
 // Parameters:
-//
-//	dir - string path to the directory to be cleared
+//   - dir - string path to the directory to be cleared
 //
 // Returns:
-//
-//	error - nil on success, or any error encountered during the operation
+//   - error - nil on success, or any error encountered during the operation
 //
 // Behavior details:
 //   - Preserves the original directory (only removes its contents)

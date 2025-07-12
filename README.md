@@ -13,3 +13,4 @@ Import one of the following libraries in your Go code:
 - `github.com/outdead/golibs/logger` - to use wrapped logrus logger
 - `github.com/outdead/golibs/random` - to generate random values
 - `github.com/outdead/golibs/times` - provides custom time handling utilities
+- `github.com/outdead/golibs/ttlcounter` - thread-safe TTL counter
