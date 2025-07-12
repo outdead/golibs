@@ -106,6 +106,10 @@ func TestCounterKeys(t *testing.T) {
 		c.Inc(k)
 	}
 
+	if c.Len() != len(keys) {
+		t.Errorf("Expected %d items, got %d", len(keys), c.Len())
+	}
+
 	retrieved := c.Keys()
 	if len(retrieved) != len(keys) {
 		t.Errorf("Expected %d keys, got %d", len(keys), len(retrieved))
@@ -124,11 +128,35 @@ func TestCounterKeys(t *testing.T) {
 	}
 }
 
-func TestCounterTTLUpdate(t *testing.T) {
-	c := New(10)
+func TestCounterTTL(t *testing.T) {
+	c := New(0) // Sets to 1 by default
 	c.Inc("test")
 
-	c.SetTTL(1)
+	if c.TTL() != DefaultTTL {
+		t.Errorf("Expected default TTL, got %d", c.TTL())
+	}
+
+	// Vacuum should not run after close, so item should still exist
+	if val := c.Get("test"); val != 1 {
+		t.Errorf("Expected item to persist after close, got %d", val)
+	}
+}
+
+func TestCounterTTLUpdate(t *testing.T) {
+	c := New(10)
+
+	if c.TTL() != 10 {
+		t.Errorf("Expected TTL to be %d, got %d", 10, c.TTL())
+	}
+
+	c.Inc("test")
+
+	c.SetTTL(-1)
+
+	if c.TTL() != DefaultTTL {
+		t.Errorf("Expected TTL to be %d, got %d", DefaultTTL, c.TTL())
+	}
+
 	time.Sleep(1100 * time.Millisecond)
 
 	if val := c.Get("test"); val != 0 {

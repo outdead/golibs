@@ -104,15 +104,7 @@ func (c *Counter) Inc(key string) {
 	item.value++
 	item.access = now.Unix()
 
-	// Update expiration time in queue
-	for i, eqItem := range c.expQueue {
-		if eqItem.key == key {
-			c.expQueue[i].expireAt = expireAt
-			heap.Fix(&c.expQueue, i)
-
-			break
-		}
-	}
+	c.updateKeyInQueue(key, expireAt)
 }
 
 // Get returns the current value for the specified key
@@ -144,15 +136,7 @@ func (c *Counter) Touch(key string) int {
 		value = it.value
 		it.access = now.Unix()
 
-		// Update expiration time in queue
-		for i, eqItem := range c.expQueue {
-			if eqItem.key == key {
-				c.expQueue[i].expireAt = expireAt
-				heap.Fix(&c.expQueue, i)
-
-				break
-			}
-		}
+		c.updateKeyInQueue(key, expireAt)
 	}
 
 	return value
@@ -275,6 +259,18 @@ func (c *Counter) vacuumLoop() {
 			c.Vacuum(now)
 		case <-c.stop:
 			return
+		}
+	}
+}
+
+// updateKeyInQueue updates expiration time in queue for key.
+func (c *Counter) updateKeyInQueue(key string, expireAt int64) {
+	for i, eqItem := range c.expQueue {
+		if eqItem.key == key {
+			c.expQueue[i].expireAt = expireAt
+			heap.Fix(&c.expQueue, i)
+
+			break
 		}
 	}
 }
