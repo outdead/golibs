@@ -39,6 +39,13 @@ func TestStrip(t *testing.T) {
 	}
 }
 
+func TestGetLargeFileList(t *testing.T) {
+	resp, err := GetLargeFileList(".", ".go", 10)
+	assert.Nil(t, err)
+
+	assert.Contains(t, resp, "bash.go")
+}
+
 func TestPidofByProcess(t *testing.T) {
 	t.Run("no errors", func(t *testing.T) {
 		expectPid := strconv.Itoa(os.Getpid())

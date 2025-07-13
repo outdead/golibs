@@ -119,14 +119,14 @@ func Execute(name string, args ...string) (string, error) {
 //   - params: optional count parameter (default 20)
 //
 // Returns list of files or error if command fails.
-func GetLargeFileList(path, ext string, params ...int) (string, error) {
+func GetLargeFileList(path, mask string, params ...int) (string, error) {
 	count := "20"
 	if len(params) > 0 {
 		count = strconv.Itoa(params[0])
 	}
 
 	args := []string{
-		"-c", "ls " + path + " -hSRs | egrep 'map_[0-9]+_[0-9]+" + ext + "' | head -" + count,
+		"-c", "ls " + path + " -hSRs | egrep '" + mask + "' | head -" + count,
 	}
 
 	return Execute(commandBash, args...)
