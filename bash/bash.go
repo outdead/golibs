@@ -37,6 +37,9 @@ var ansiRegexp = regexp.MustCompile(ansi)
 
 // Common error definitions used throughout the package.
 var (
+	// ErrInvalidCommand indicates that command is invalid.
+	ErrInvalidCommand = errors.New("invalid command")
+
 	// ErrEmptyPID indicates that a process lookup returned an empty process ID.
 	ErrEmptyPID = errors.New("empty process id")
 
@@ -209,7 +212,15 @@ func PidofByProcess(process string) (string, error) {
 //	    // handle error
 //	}.
 func PidofByProcessAndParam(process, param string) (string, error) {
-	cmd := fmt.Sprintf("pgrep -af %q | grep %q | grep -o -e %q", process, param, `^[0-9]*`)
+	if process == "" || param == "" || string(process[0]) == "-" {
+		return "", ErrInvalidCommand
+	}
+
+	if string(param[0]) == "-" {
+		param = "\\" + param
+	}
+
+	cmd := fmt.Sprintf("pgrep -af %q | grep -v %q | grep %q | grep -o -e %q", process, " bash ", param, `^[0-9]*`)
 
 	out, err := Execute(commandBash, "-c", cmd)
 	if err != nil {
