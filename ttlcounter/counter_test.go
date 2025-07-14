@@ -50,7 +50,7 @@ func TestCounterTouch(t *testing.T) {
 	}
 }
 
-func TestCounterExpire(t *testing.T) {
+func TestCounterExpiration(t *testing.T) {
 	c := New(1 * time.Second)
 
 	c.Inc("test")
