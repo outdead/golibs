@@ -16,26 +16,23 @@ const (
 
 	// DefaultVacuumInterval is the default interval for automatic cleanup of expired items.
 	DefaultVacuumInterval = 1 * time.Second
-
-	nanosecondModifierTTL = 1000000000
 )
 
 // Item represents a counter item with a value and last access timestamp.
 type Item struct {
-	value  int           // The current counter value
-	access int64         // Unix timestamp of last access
-	ttl    time.Duration // Seconds
+	value  int   // The current counter value
+	access int64 // Unix timestamp of last access
 }
 
-func (item *Item) Expired() bool {
-	return item.access+item.ttl.Nanoseconds() <= time.Now().UnixNano()
+func (item *Item) Expired(ttl time.Duration) bool {
+	return item.access+ttl.Nanoseconds() <= time.Now().UnixNano()
 }
 
 // Counter is a TTL-based counter that automatically expires old entries.
 type Counter struct {
 	mu      sync.Mutex
 	items   map[string]*Item
-	ttl     time.Duration // Time-to-live in seconds for counter items
+	ttl     time.Duration
 	stop    chan struct{}
 	stopped sync.Once
 }
@@ -99,7 +96,6 @@ func (c *Counter) Inc(key string) {
 
 	item.value++
 	item.access = now.UnixNano()
-	item.ttl = c.ttl
 }
 
 // Get returns the current value for the specified key
@@ -112,7 +108,7 @@ func (c *Counter) Get(key string) int {
 	var value int
 
 	if item, ok := c.items[key]; ok {
-		if item.Expired() {
+		if item.Expired(c.ttl) {
 			return 0
 		}
 
@@ -133,13 +129,12 @@ func (c *Counter) Touch(key string) int {
 	var value int
 
 	if item, ok := c.items[key]; ok {
-		if item.Expired() {
+		if item.Expired(c.ttl) {
 			return 0
 		}
 
 		value = item.value
 		item.access = now.UnixNano()
-		item.ttl = c.ttl
 	}
 
 	return value
@@ -157,15 +152,19 @@ func (c *Counter) Del(key string) {
 // Expire returns how many seconds until the key expires
 // Returns a negative number if the key is already expired
 // Returns 0 if the key doesn't exist.
-func (c *Counter) Expire(key string) int {
+func (c *Counter) Expire(key string) time.Duration {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	if item, ok := c.items[key]; ok {
-		expireTime := item.access + c.ttl.Nanoseconds()
-		remaining := expireTime - time.Now().UnixNano()
+	now := time.Now().UnixNano()
 
-		return int(remaining) / nanosecondModifierTTL
+	if item, ok := c.items[key]; ok {
+		remaining := item.access + c.ttl.Nanoseconds() - now
+		if remaining > 0 {
+			return time.Duration(remaining)
+		}
+
+		return 0
 	}
 
 	return 0
@@ -178,7 +177,7 @@ func (c *Counter) Vacuum() {
 	defer c.mu.Unlock()
 
 	for key, item := range c.items {
-		if item.Expired() {
+		if item.Expired(c.ttl) {
 			delete(c.items, key)
 		}
 	}

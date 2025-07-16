@@ -41,8 +41,8 @@ func TestCounterTouch(t *testing.T) {
 	}
 
 	newExpire := c.Expire("test")
-	if newExpire != initialExpire {
-		t.Errorf("Expiration not updated by touch: was %d, now %d", initialExpire, newExpire)
+	if int(newExpire.Seconds()) != int(initialExpire.Seconds()) {
+		t.Errorf("Expiration not updated by touch: was %v, now %v", initialExpire.Seconds(), newExpire.Seconds())
 	}
 
 	if val := c.Get("test"); val != 1 {
@@ -153,6 +153,7 @@ func TestCounterClose(t *testing.T) {
 	c := New(1 * time.Second)
 	c.Inc("test")
 
+	c.Close()
 	c.Close()
 	time.Sleep(1100 * time.Millisecond)
 
