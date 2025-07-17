@@ -10,14 +10,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const BaseDir = "./.tmp"
+const TestFilesDir = "./.tmp"
 
 func setupTest(t *testing.T) func(t *testing.T) {
-	os.RemoveAll(BaseDir)
-	os.Mkdir(BaseDir, 0o777)
+	os.RemoveAll(TestFilesDir)
+	os.Mkdir(TestFilesDir, 0o777)
 
 	return func(t *testing.T) {
-		os.RemoveAll(BaseDir)
+		os.RemoveAll(TestFilesDir)
 	}
 }
 
@@ -26,7 +26,7 @@ func TestFileExists(t *testing.T) {
 	defer down(t)
 
 	t.Run("existing file", func(t *testing.T) {
-		tmpfile, err := os.CreateTemp(BaseDir, "testfile")
+		tmpfile, err := os.CreateTemp(TestFilesDir, "testfile")
 		require.NoError(t, err)
 		defer os.Remove(tmpfile.Name())
 
@@ -38,7 +38,7 @@ func TestFileExists(t *testing.T) {
 	})
 
 	t.Run("directory", func(t *testing.T) {
-		dir, err := os.MkdirTemp(BaseDir, "testdir")
+		dir, err := os.MkdirTemp(TestFilesDir, "testdir")
 		require.NoError(t, err)
 		defer os.RemoveAll(dir)
 
@@ -51,12 +51,12 @@ func TestFileCopy(t *testing.T) {
 	defer down(t)
 
 	t.Run("successful copy", func(t *testing.T) {
-		src, err := os.CreateTemp(BaseDir, "src")
+		src, err := os.CreateTemp(TestFilesDir, "src")
 		require.NoError(t, err)
 		defer os.Remove(src.Name())
 		src.WriteString("test content")
 
-		dst := filepath.Join(BaseDir, "dstfile")
+		dst := filepath.Join(TestFilesDir, "dstfile")
 		defer os.Remove(dst)
 
 		err = FileCopy(src.Name(), dst)
@@ -73,11 +73,11 @@ func TestFileCopy(t *testing.T) {
 	})
 
 	t.Run("custom permissions", func(t *testing.T) {
-		src, err := os.CreateTemp(BaseDir, "src")
+		src, err := os.CreateTemp(TestFilesDir, "src")
 		require.NoError(t, err)
 		defer os.Remove(src.Name())
 
-		dst := filepath.Join(BaseDir, "dstfile")
+		dst := filepath.Join(TestFilesDir, "dstfile")
 		defer os.Remove(dst)
 
 		err = FileCopy(src.Name(), dst, 0644)
@@ -94,7 +94,7 @@ func TestReadStringFile(t *testing.T) {
 	defer down(t)
 
 	t.Run("successful read", func(t *testing.T) {
-		dir, err := os.MkdirTemp(BaseDir, "testdir")
+		dir, err := os.MkdirTemp(TestFilesDir, "testdir")
 		require.NoError(t, err)
 		defer os.RemoveAll(dir)
 
@@ -117,7 +117,7 @@ func TestReadBinFile(t *testing.T) {
 	defer down(t)
 
 	t.Run("successful read", func(t *testing.T) {
-		dir, err := os.MkdirTemp(BaseDir, "testdir")
+		dir, err := os.MkdirTemp(TestFilesDir, "testdir")
 		require.NoError(t, err)
 		defer os.RemoveAll(dir)
 
@@ -136,7 +136,7 @@ func TestWriteFileString(t *testing.T) {
 	defer down(t)
 
 	t.Run("successful write", func(t *testing.T) {
-		dir, err := os.MkdirTemp(BaseDir, "testdir")
+		dir, err := os.MkdirTemp(TestFilesDir, "testdir")
 		require.NoError(t, err)
 		defer os.RemoveAll(dir)
 
@@ -159,7 +159,7 @@ func TestCreateAndOpenFile(t *testing.T) {
 	defer down(t)
 
 	t.Run("successful create", func(t *testing.T) {
-		dir, err := os.MkdirTemp(BaseDir, "testdir")
+		dir, err := os.MkdirTemp(TestFilesDir, "testdir")
 		require.NoError(t, err)
 		defer os.RemoveAll(dir)
 
@@ -179,7 +179,7 @@ func TestCreateAndOpenFile(t *testing.T) {
 		down := setupTest(t)
 		defer down(t)
 
-		dir, err := os.MkdirTemp(BaseDir, "testdir")
+		dir, err := os.MkdirTemp(TestFilesDir, "testdir")
 		require.NoError(t, err)
 		defer os.RemoveAll(dir)
 
@@ -203,7 +203,7 @@ func TestStatTimes(t *testing.T) {
 	defer down(t)
 
 	t.Run("successful stat", func(t *testing.T) {
-		tmpfile, err := os.CreateTemp(BaseDir, "testfile")
+		tmpfile, err := os.CreateTemp(TestFilesDir, "testfile")
 		require.NoError(t, err)
 		defer os.Remove(tmpfile.Name())
 
@@ -226,7 +226,7 @@ func TestMkdirAll(t *testing.T) {
 	defer down(t)
 
 	t.Run("successful create", func(t *testing.T) {
-		dir := filepath.Join(BaseDir, "testdir")
+		dir := filepath.Join(TestFilesDir, "testdir")
 		defer os.RemoveAll(dir)
 
 		err := MkdirAll(dir)
@@ -236,7 +236,7 @@ func TestMkdirAll(t *testing.T) {
 	})
 
 	t.Run("custom permissions", func(t *testing.T) {
-		dir := filepath.Join(BaseDir, "testdir")
+		dir := filepath.Join(TestFilesDir, "testdir")
 		defer os.RemoveAll(dir)
 
 		err := MkdirAll(dir, 0750)
@@ -248,7 +248,7 @@ func TestMkdirAll(t *testing.T) {
 	})
 
 	t.Run("existing directory", func(t *testing.T) {
-		dir, err := os.MkdirTemp(BaseDir, "testdir")
+		dir, err := os.MkdirTemp(TestFilesDir, "testdir")
 		require.NoError(t, err)
 		defer os.RemoveAll(dir)
 
@@ -262,7 +262,7 @@ func TestGetDirNamesInFolder(t *testing.T) {
 	defer down(t)
 
 	t.Run("successful read", func(t *testing.T) {
-		dir, err := os.MkdirTemp(BaseDir, "testdir")
+		dir, err := os.MkdirTemp(TestFilesDir, "testdir")
 		require.NoError(t, err)
 		defer os.RemoveAll(dir)
 
@@ -292,7 +292,7 @@ func TestGetFileNamesInFolder(t *testing.T) {
 	defer down(t)
 
 	t.Run("successful read", func(t *testing.T) {
-		dir, err := os.MkdirTemp(BaseDir, "testdir")
+		dir, err := os.MkdirTemp(TestFilesDir, "testdir")
 		require.NoError(t, err)
 		defer os.RemoveAll(dir)
 
@@ -366,7 +366,7 @@ func TestClearDir(t *testing.T) {
 	}
 
 	t.Run("should clear directory with files", func(t *testing.T) {
-		dir, err := os.MkdirTemp(BaseDir, "testdir")
+		dir, err := os.MkdirTemp(TestFilesDir, "testdir")
 		require.NoError(t, err)
 		defer os.RemoveAll(dir)
 
@@ -382,7 +382,7 @@ func TestClearDir(t *testing.T) {
 	})
 
 	t.Run("should clear directory with subdirectories", func(t *testing.T) {
-		dir, err := os.MkdirTemp(BaseDir, "testdir")
+		dir, err := os.MkdirTemp(TestFilesDir, "testdir")
 		require.NoError(t, err)
 		defer os.RemoveAll(dir)
 
@@ -399,7 +399,7 @@ func TestClearDir(t *testing.T) {
 	})
 
 	t.Run("should preserve empty directory", func(t *testing.T) {
-		dir, err := os.MkdirTemp(BaseDir, "testdir")
+		dir, err := os.MkdirTemp(TestFilesDir, "testdir")
 		require.NoError(t, err)
 		defer os.RemoveAll(dir)
 
@@ -411,7 +411,7 @@ func TestClearDir(t *testing.T) {
 	})
 
 	t.Run("should handle symbolic links", func(t *testing.T) {
-		dir, err := os.MkdirTemp(BaseDir, "testdir")
+		dir, err := os.MkdirTemp(TestFilesDir, "testdir")
 		require.NoError(t, err)
 		defer os.RemoveAll(dir)
 

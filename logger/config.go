@@ -6,6 +6,8 @@ import (
 	"github.com/outdead/discordbotrus"
 )
 
+const DefaultFileHookLayout = "20060102_log.json"
+
 var ErrInvalidConfig = errors.New("invalid config")
 
 // Config represents the configuration structure for the logger.
