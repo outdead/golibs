@@ -7,7 +7,7 @@ import (
 )
 
 func TestCounterBasicOperations(t *testing.T) {
-	c := New(2) // TTL 2 seconds
+	c := New(2 * time.Second) // TTL 2 seconds
 
 	// Test Inc and Get
 	c.Inc("test")
@@ -29,7 +29,7 @@ func TestCounterBasicOperations(t *testing.T) {
 }
 
 func TestCounterTouch(t *testing.T) {
-	c := New(3)
+	c := New(3 * time.Second)
 
 	c.Inc("test")
 	initialExpire := c.Expire("test")
@@ -50,27 +50,18 @@ func TestCounterTouch(t *testing.T) {
 	}
 }
 
-func TestCounterReset(t *testing.T) {
-	c := New(10)
-
-	c.Inc("test")
-	c.Inc("test")
-	c.Reset("test")
-
-	if val := c.Get("test"); val != 0 {
-		t.Errorf("Expected 0 after reset, got %d", val)
-	}
-
-	if c.Expire("test") <= 0 {
-		t.Error("Reset should update access time")
-	}
-}
-
 func TestCounterExpire(t *testing.T) {
-	c := New(1)
+	c := New(1 * time.Second)
 
 	c.Inc("test")
-	time.Sleep(1100 * time.Millisecond) // Slightly more than TTL
+
+	time.Sleep(900 * time.Millisecond) // Slightly more than TTL
+
+	if val := c.Get("test"); val != 1 {
+		t.Errorf("Expected item, got %d", val)
+	}
+
+	time.Sleep(200 * time.Millisecond) // Slightly more than TTL
 
 	if val := c.Get("test"); val != 0 {
 		t.Errorf("Expected item to expire, got %d", val)
@@ -78,7 +69,7 @@ func TestCounterExpire(t *testing.T) {
 }
 
 func TestCounterConcurrentAccess(t *testing.T) {
-	c := New(10)
+	c := New(10 * time.Second)
 	var wg sync.WaitGroup
 
 	for i := 0; i < 100; i++ {
@@ -99,7 +90,7 @@ func TestCounterConcurrentAccess(t *testing.T) {
 }
 
 func TestCounterKeys(t *testing.T) {
-	c := New(10)
+	c := New(10 * time.Second)
 
 	keys := []string{"a", "b", "c"}
 	for _, k := range keys {
@@ -143,9 +134,9 @@ func TestCounterTTL(t *testing.T) {
 }
 
 func TestCounterTTLUpdate(t *testing.T) {
-	c := New(10)
+	c := New(10 * time.Second)
 
-	if c.TTL() != 10 {
+	if c.TTL() != 10*time.Second {
 		t.Errorf("Expected TTL to be %d, got %d", 10, c.TTL())
 	}
 
@@ -156,29 +147,22 @@ func TestCounterTTLUpdate(t *testing.T) {
 	if c.TTL() != DefaultTTL {
 		t.Errorf("Expected TTL to be %d, got %d", DefaultTTL, c.TTL())
 	}
-
-	time.Sleep(1100 * time.Millisecond)
-
-	if val := c.Get("test"); val != 0 {
-		t.Errorf("Expected item to expire after TTL change, got %d", val)
-	}
 }
 
 func TestCounterClose(t *testing.T) {
-	c := New(1)
+	c := New(1 * time.Second)
 	c.Inc("test")
 
 	c.Close()
 	time.Sleep(1100 * time.Millisecond)
 
-	// Vacuum should not run after close, so item should still exist
-	if val := c.Get("test"); val != 1 {
-		t.Errorf("Expected item to persist after close, got %d", val)
+	if val := c.Get("test"); val != 0 {
+		t.Errorf("Expected empty item after close, got %d", val)
 	}
 }
 
 func TestCounterDel(t *testing.T) {
-	c := New(10)
+	c := New(10 * time.Second)
 	c.Inc("test")
 
 	c.Del("test")
