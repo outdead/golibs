@@ -23,6 +23,30 @@ linters-settings:
       rules:
         json: snake
         yaml: snake
+  varnamelen:
+    max-distance: 5
+    min-name-length: 3
+    check-receiver: false
+    check-return: false
+    check-type-param: false
+    ignore-type-assert-ok: false
+    ignore-map-index-ok: false
+    ignore-chan-recv-ok: false
+    ignore-names:
+      - err
+      - to
+      - db
+      - i
+      - j
+    ignore-decls:
+      - c echo.Context
+      - e *echo.Echo
+      - s Server
+  godox:
+    keywords:
+      - "BUG"
+      - "FIXME"
+    #  - "TODO"
 
 linters:
   enable-all: true
