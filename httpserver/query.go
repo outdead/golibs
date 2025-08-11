@@ -34,24 +34,24 @@ func NewParam() *Param {
 
 // ParseQueryString parses the query string, does unescaping.
 func (s *Server) ParseQueryString(c echo.Context, mapData *ReplacementFields) (*Param, error) { //nolint: cyclop, lll // nothing to simplify
-	qStr := c.QueryString()
+	rawQuery := c.QueryString()
 
 	if mapData != nil && mapData.Keys != nil {
 		r := strings.NewReplacer(mapData.Keys...)
-		qStr = r.Replace(qStr)
+		rawQuery = r.Replace(rawQuery)
 	}
 
 	param := NewParam()
 
-	for _, i := range strings.Split(qStr, "&") {
-		qSec := strings.Split(i, "=")
+	for _, condition := range strings.Split(rawQuery, "&") {
+		couple := strings.Split(condition, "=")
 
-		if len(qSec) <= 1 {
+		if len(couple) <= 1 {
 			continue
 		}
 
-		key := qSec[0]
-		value := qSec[1]
+		key := couple[0]
+		value := couple[1]
 
 		var err error
 

@@ -63,20 +63,26 @@ func NewError(err error) *Error {
 	body := NewInternalServerError()
 
 	if ok := errors.As(err, &body); !ok {
-		switch e := err.(type) { //nolint:errorlint, varnamelen // errors.As is too annoying in this case.
-		case *validator.ValidationError:
-			body = NewValidationError(*e)
-			if e.Name == "" {
-				body.Detail = e.Reason
+		var (
+			validationError  *validator.ValidationError
+			validationErrors *validator.ValidationErrors
+			httpError        *echo.HTTPError
+		)
+
+		switch {
+		case errors.As(err, &validationError):
+			body = NewValidationError(*validationError)
+			if validationError.Name == "" {
+				body.Detail = validationError.Reason
+				body.InvalidParams = validator.ValidationErrors{}
 			}
-		case validator.ValidationErrors:
-			body = NewValidationError(e...)
-		case *echo.HTTPError:
-			body = NewHTTPError(e)
+		case errors.As(err, &validationErrors):
+			body = NewValidationError(*validationErrors...)
+		case errors.As(err, &httpError):
+			body = NewHTTPError(httpError)
+		case errors.Is(err, validator.ErrNotFound):
+			body = NewNotFoundError(err)
 		default:
-			if errors.Is(err, validator.ErrNotFound) {
-				body = NewNotFoundError(err)
-			}
 		}
 	}
 
