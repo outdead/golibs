@@ -65,7 +65,7 @@ func NewError(err error) *Error {
 	if ok := errors.As(err, &body); !ok {
 		var (
 			validationError  *validator.ValidationError
-			validationErrors *validator.ValidationErrors
+			validationErrors validator.ValidationErrors
 			httpError        *echo.HTTPError
 		)
 
@@ -74,15 +74,13 @@ func NewError(err error) *Error {
 			body = NewValidationError(*validationError)
 			if validationError.Name == "" {
 				body.Detail = validationError.Reason
-				body.InvalidParams = validator.ValidationErrors{}
 			}
 		case errors.As(err, &validationErrors):
-			body = NewValidationError(*validationErrors...)
+			body = NewValidationError(validationErrors...)
 		case errors.As(err, &httpError):
 			body = NewHTTPError(httpError)
 		case errors.Is(err, validator.ErrNotFound):
 			body = NewNotFoundError(err)
-		default:
 		}
 	}
 
