@@ -35,7 +35,7 @@ func (v *Validator) Validate(i interface{}) error {
 
 	for _, vErr := range vErrs {
 		msg := fmt.Sprintf("invalid on '%s' rule", vErr.Tag())
-		valErr := NewValidationError(vErr.StructNamespace(), msg)
+		valErr := NewValidationError(vErr.Tag(), msg)
 		fields = append(fields, *valErr)
 	}
 
