@@ -3,6 +3,8 @@ package validator
 import (
 	"errors"
 	"fmt"
+	"reflect"
+	"strings"
 
 	"github.com/go-playground/validator/v10"
 )
@@ -14,8 +16,20 @@ type Validator struct {
 
 // New returns a new instance of Validator with sane defaults.
 func New() *Validator {
+	v := validator.New()
+
+	v.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+
+		if name == "-" {
+			return ""
+		}
+
+		return name
+	})
+
 	return &Validator{
-		v: validator.New(),
+		v: v,
 	}
 }
 
