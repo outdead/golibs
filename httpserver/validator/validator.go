@@ -16,10 +16,12 @@ type Validator struct {
 
 // New returns a new instance of Validator with sane defaults.
 func New() *Validator {
-	v := validator.New()
+	const couple = 2
 
-	v.RegisterTagNameFunc(func(fld reflect.StructField) string {
-		name := strings.SplitN(fld.Tag.Get("json"), ",", 2)[0]
+	validat := validator.New()
+
+	validat.RegisterTagNameFunc(func(fld reflect.StructField) string {
+		name := strings.SplitN(fld.Tag.Get("json"), ",", couple)[0]
 
 		if name == "-" {
 			return ""
@@ -29,7 +31,7 @@ func New() *Validator {
 	})
 
 	return &Validator{
-		v: v,
+		v: validat,
 	}
 }
 
