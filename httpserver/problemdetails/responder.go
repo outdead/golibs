@@ -8,14 +8,14 @@ import (
 )
 
 // Response represents a standardized API response structure
-// It's designed to be serialized as JSON and returned from API endpoints
+// It's designed to be serialized as JSON and returned from API endpoints.
 type Response struct {
 	Result interface{} `json:"result"`          // The main data payload of the response, can be any type
 	Count  int         `json:"count,omitempty"` // Optional field indicating the number of items in result, omitted if zero
 }
 
 // Fields is a generic key-value mapping structure
-// Commonly used for dynamic data storage where field names are not known at compile time
+// Commonly used for dynamic data storage where field names are not known at compile time.
 type Fields map[string]interface{} // Maps string keys to values of any type, useful for flexible data structures
 
 // Responder wraps on echo Context to be used on echo HTTP handlers to
