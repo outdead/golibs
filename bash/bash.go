@@ -224,7 +224,11 @@ func PidofByProcessAndParam(process, param string) (string, error) {
 
 	out, err := Execute(commandBash, "-c", cmd)
 	if err != nil {
-		return "", err
+		if err.Error() == "exit status 1" {
+			return "", ErrNotRunning
+		}
+
+		return out, err
 	}
 
 	if l := strings.Split(out, "\n"); len(l) > 0 {

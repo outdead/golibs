@@ -75,12 +75,14 @@ func TestPidofByProcessAndParam(t *testing.T) {
 	t.Run("expect error", func(t *testing.T) {
 		pid, err := PidofByProcessAndParam(NonExistentProcessName, "nonexistent")
 		assert.NotNil(t, err)
+		assert.ErrorIs(t, err, ErrNotRunning)
 		assert.Empty(t, pid)
 	})
 
 	t.Run("invalid command", func(t *testing.T) {
 		_, err := PidofByProcessAndParam("-error", "nonexistent")
 		assert.NotNil(t, err)
+		assert.ErrorIs(t, err, ErrInvalidCommand)
 	})
 }
 
